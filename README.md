@@ -25,6 +25,10 @@ API Token：</p>
 模型授权：一些模型例如： Llama 系列模型，请先在 Cloudflare 网页端的 AI Playground 运行一次，并点击“接受协议”。</p>
 安全：请勿将 credentials.json 文件分享给他人，这包含你的个人密钥。</p>
 如果需要手动切换模型，请在CF→Workers AI→Model里复制需要的模型名字。</p>
+<p><i><例如</i></p>
+<div align="center">
+<img width="1906" height="806" alt="02" src="https://github.com/user-attachments/assets/9b05952c-c019-432a-8b8a-140537b81766" />
+</div>
 📂 推荐模型</p>
 反推/视觉：@cf/meta/gemma-3-12b-it</p>
 绘图：@cf/black-forest-labs/flux-1-schnell (步数建议设置为 4)</p>
