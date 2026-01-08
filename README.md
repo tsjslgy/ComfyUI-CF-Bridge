@@ -19,11 +19,11 @@ Account ID：
 登录 Cloudflare 控制台，在网址中 dash.cloudflare.com/ 后面那一串 32 位字符即为 ID。
 API Token：
 点击右上角头像 -> “我的个人资料” -> “API 令牌” -> “创建令牌”。
-使用“Workers AI (编辑)”模板创建，并获取生成的 Token。
+使用“Workers AI (编辑)”模板创建，并获取生成的 Token。</p>
 ⚠️ 注意事项
 免费额度：Cloudflare 每天提供 10,000 个“神经元”免费额度。生成一张图片或多次反推后额度会消耗，每天早上 8:00 (北京时间) 刷新。
 模型授权：首次使用 Llama 系列模型，请先在 Cloudflare 网页端的 AI Playground 运行一次，并点击“接受协议”。
-安全：请勿将 credentials.json 文件分享给他人，这包含你的个人密钥。
+安全：请勿将 credentials.json 文件分享给他人，这包含你的个人密钥。</p>
 📂 推荐模型
 反推/视觉：@cf/meta/gemma-3-12b-it
 绘图：@cf/black-forest-labs/flux-1-schnell (步数建议设置为 4)
