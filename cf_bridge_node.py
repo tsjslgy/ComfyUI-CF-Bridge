@@ -1,7 +1,9 @@
 import requests, base64, json, os, io
 import numpy as np
 from PIL import Image
+import torch
 
+# 文件路径定义
 current_path = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(current_path, "presets.json")
 creds_path = os.path.join(current_path, "credentials.json")
@@ -49,7 +51,7 @@ class CF_Language_Node:
             },
             "optional": {
                 "image": ("IMAGE",),
-                "自定义人设": ("STRING", {"multiline": True, "default": ""}),
+                "自定义人设": ("STRING", {"multiline": True, "default": "", "placeholder": "在此输入额外的人设或风格约束"}),
             }
         }
 
@@ -58,6 +60,7 @@ class CF_Language_Node:
     CATEGORY = "Cloudflare_AI"
 
     def call_cf_ai(self, cf_api_token, cf_account_id, 预设功能, model, 自定义模型ID, 用户输入, image=None, 自定义人设=""):
+        # 1. 凭据处理
         self.load_creds()
         final_token = cf_api_token.strip() if cf_api_token.strip() else self.saved_token
         final_id = cf_account_id.strip() if cf_account_id.strip() else self.saved_id
@@ -66,44 +69,66 @@ class CF_Language_Node:
             with open(creds_path, 'w') as f:
                 json.dump({"token": final_token, "id": final_id}, f)
 
-        if not final_token or not final_id: return ("⚠️ 缺少 Token/ID",)
+        if not final_token or not final_id: return ("⚠️ 缺少 Token 或 Account ID",)
         actual_model = 自定义模型ID.strip() if model == "[使用下方自定义模型ID]" else model
 
-        system_instruction = "Direct output only. No preamble."
+        # 2. 核心逻辑：冲突处理与指令融合
+        base_task = "You are a helpful assistant."
+        is_pure_custom = False
+
         if os.path.exists(config_path):
             with open(config_path, 'r', encoding='utf-8') as f:
                 presets = json.load(f)
                 for k, v in presets.items():
                     if v["name"] == 预设功能:
-                        system_instruction = 自定义人设 if k == "custom" and 自定义人设.strip() else v["system"]
+                        base_task = v["system"]
+                        if k == "custom": is_pure_custom = True
                         break
 
+        if is_pure_custom:
+            system_instruction = 自定义人设 if 自定义人设.strip() else "Direct output only."
+        else:
+            if 自定义人设.strip():
+                system_instruction = (
+                    f"### CORE TASK (Primary Constraint):\n{base_task}\n\n"
+                    f"### STYLE & IDENTITY (Secondary Adjustments):\n{自定义人设}\n\n"
+                    f"NOTICE: If instructions conflict, maintain the output format of the CORE TASK "
+                    f"but adopt the tone and vocabulary of the STYLE."
+                )
+            else:
+                system_instruction = base_task
+
+        # 3. 构造请求
         api_url = f"https://api.cloudflare.com/client/v4/accounts/{final_id}/ai/run/{actual_model}"
         headers = {"Authorization": f"Bearer {final_token}", "Content-Type": "application/json"}
         
-        # 核心逻辑：针对 Llama 3.2 Vision 的 Payload 修正
-        if image is not None and ("vision" in actual_model.lower() or "gemma-3" in actual_model.lower()):
-            i = 255. * image[0].cpu().numpy()
-            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            img.thumbnail((512, 512)) # 锁定 512px，极致速度
-            buffered = io.BytesIO()
-            img.save(buffered, format="JPEG", quality=70)
-            img_base64 = base64.b64encode(buffered.getvalue()).decode()
-            
-            # 使用标准的 OpenAI-like Messages 格式，这能让 Llama 3.2 看见图片
-            payload = {
-                "messages": [
-                    {"role": "system", "content": system_instruction},
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": 用户输入},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_base64}"}}
-                        ]
-                    }
-                ],
-                "max_tokens": 1024
-            }
+        is_vision = any(x in actual_model.lower() for x in ["vision", "gemma-3", "llava"])
+        
+        if image is not None and is_vision:
+            try:
+                # 图像处理
+                i = 255. * image[0].cpu().numpy()
+                img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+                img.thumbnail((512, 512))
+                buffered = io.BytesIO()
+                img.save(buffered, format="JPEG", quality=75)
+                # 修正变量名：使用 img_base64
+                img_base64 = base64.b64encode(buffered.getvalue()).decode()
+                
+                payload = {
+                    "messages": [
+                        {"role": "system", "content": system_instruction},
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": 用户输入},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_base64}"}}
+                            ]
+                        }
+                    ]
+                }
+            except Exception as e:
+                return (f"图片处理失败: {str(e)}")
         else:
             payload = {
                 "messages": [
@@ -115,24 +140,13 @@ class CF_Language_Node:
         try:
             response = requests.post(api_url, headers=headers, json=payload, timeout=60)
             res_json = response.json()
-            
             if res_json.get("success"):
                 result = res_json.get("result", {})
-                final_text = result.get("response") or result.get("description") or result.get("text")
-                if not final_text: return ("API成功但无文字")
-                
-                # 过滤常见的废话前缀
-                clean_text = final_text.strip()
-                noise = ["Here is a", "Okay,", "Certainly!", "Description:", "The image shows"]
-                for n in noise:
-                    if clean_text.startswith(n):
-                        clean_text = clean_text.split("\n", 1)[-1] # 尝试切掉第一行
-                
-                return (clean_text.strip(),)
-            else:
-                return (f"CF错误: {res_json.get('errors')}")
+                out = result.get("response") or result.get("description") or result.get("text")
+                return (out.strip() if out else "无内容",)
+            return (f"CF错误: {res_json.get('errors')}",)
         except Exception as e:
-            return (f"网络请求失败: {str(e)}")
+            return (f"网络故障: {str(e)}",)
 
 NODE_CLASS_MAPPINGS = {"CF_Language_Node": CF_Language_Node}
 NODE_DISPLAY_NAME_MAPPINGS = {"CF_Language_Node": "☁️ TTanG-语言特效"}
