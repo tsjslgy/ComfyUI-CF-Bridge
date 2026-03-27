@@ -21,7 +21,13 @@ Account ID：</p>
 API Token：</p>
 点击右上角头像 -> “配置文件” -> “API 令牌” -> “创建令牌”。</p>
 <img width="399" height="332" alt="image" src="https://github.com/user-attachments/assets/9b094107-1203-4cbe-9c0d-b47dcdfad2b8" />
-使用“Workers AI (编辑)”模板创建，并获取生成的 Token。</p>
+然后创建账户令牌</p>
+<img width="1872" height="385" alt="10" src="https://github.com/user-attachments/assets/65617fee-a73c-4cd7-afd0-02f40f1edaaa" /></p>
+<img width="1456" height="479" alt="11" src="https://github.com/user-attachments/assets/a3360907-bc7e-462b-ba83-10298e94d077" /></p>
+<img width="1230" height="305" alt="12" src="https://github.com/user-attachments/assets/626f8b90-4d40-4956-92f4-26d7d7721eff" /></p>
+<img width="1374" height="747" alt="13" src="https://github.com/user-attachments/assets/817f52da-1e09-4bf3-a013-7e8690e64b85" /></p>
+最后确定完成并复制自己的令牌即可</p>
+将令牌TOKEN和自己的账号填入节点里，选择一个自己喜欢的模型即可。参考下方的自定义模型
 </p>
 ⚠️ 注意事项</p>
 免费额度：Cloudflare 每天提供 10,000 个“神经元”免费额度。每天早上 8:00 (北京时间) 刷新。</p>
