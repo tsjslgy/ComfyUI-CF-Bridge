@@ -102,7 +102,7 @@ class CF_Language_Node:
         api_url = f"https://api.cloudflare.com/client/v4/accounts/{final_id}/ai/run/{actual_model}"
         headers = {"Authorization": f"Bearer {final_token}", "Content-Type": "application/json"}
         
-        is_vision = any(x in actual_model.lower() for x in ["vision", "gemma-3", "llava"])
+        is_vision = any(x in actual_model.lower() for x in ["vision", "gemma", "llava"])
         
         if image is not None and is_vision:
             try:
@@ -143,6 +143,10 @@ class CF_Language_Node:
             if res_json.get("success"):
                 result = res_json.get("result", {})
                 out = result.get("response") or result.get("description") or result.get("text")
+                if not out:
+                    choices = result.get("choices")
+                    if choices:
+                        out = choices[0].get("message", {}).get("content")
                 return (out.strip() if out else "无内容",)
             return (f"CF错误: {res_json.get('errors')}",)
         except Exception as e:
