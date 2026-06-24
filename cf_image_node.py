@@ -22,10 +22,21 @@ class CF_Image_Node:
 
     @classmethod
     def INPUT_TYPES(s):
+        token_display, id_display = "", ""
+        if os.path.exists(creds_path):
+            try:
+                with open(creds_path, 'r') as f:
+                    creds = json.load(f)
+                    if creds.get("token", "").strip():
+                        token_display = "****"
+                    if creds.get("id", "").strip():
+                        id_display = "****"
+            except: pass
+
         return {
             "required": {
-                "cf_api_token": ("STRING", {"default": ""}),
-                "cf_account_id": ("STRING", {"default": ""}),
+                "cf_api_token": ("STRING", {"default": token_display}),
+                "cf_account_id": ("STRING", {"default": id_display}),
                 "model": ([
                     "@cf/black-forest-labs/flux-1-schnell",
                     "@cf/black-forest-labs/flux-1-dev",
@@ -47,10 +58,16 @@ class CF_Image_Node:
     CATEGORY = "Cloudflare_AI"
 
     def generate_image(self, cf_api_token, cf_account_id, model, 自定义模型ID, 正面提示词, 负面提示词, 宽度, 高度, 推理步数):
+        raw_token = cf_api_token.strip()
+        raw_id = cf_account_id.strip()
+        user_token = raw_token if raw_token and raw_token != "****" else None
+        user_id = raw_id if raw_id and raw_id != "****" else None
+
         self.load_creds()
-        final_token = cf_api_token.strip() if cf_api_token.strip() else self.saved_token
-        final_id = cf_account_id.strip() if cf_account_id.strip() else self.saved_id
+        final_token = user_token if user_token is not None else self.saved_token
+        final_id = user_id if user_id is not None else self.saved_id
         
+
         if not final_token or not final_id: raise Exception("⚠️ 缺少凭据")
 
         actual_model = 自定义模型ID.strip() if model == "[使用下方自定义模型ID]" else model
