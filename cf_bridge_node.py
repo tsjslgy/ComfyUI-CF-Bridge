@@ -40,7 +40,7 @@ class CF_Language_Node:
                 "预设功能": (preset_display,),
                 "model": ([
                     "@cf/meta/llama-3.2-11b-vision-instruct",
-                    "@cf/google/gemma-3-12b-it",
+                    "@cf/google/gemma-4-26b-a4b-it",
                     "@cf/meta/llama-4-scout-17b-16e-instruct",
                     "@cf/openai/gpt-oss-20b",
                     "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
@@ -153,4 +153,4 @@ class CF_Language_Node:
             return (f"网络故障: {str(e)}",)
 
 NODE_CLASS_MAPPINGS = {"CF_Language_Node": CF_Language_Node}
-NODE_DISPLAY_NAME_MAPPINGS = {"CF_Language_Node": "☁️ TTanG-语言特效"}
+NODE_DISPLAY_NAME_MAPPINGS = {"CF_Language_Node": "TT-CF-Bridge"}

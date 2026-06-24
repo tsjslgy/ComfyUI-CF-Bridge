@@ -7,8 +7,8 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "CF_Language_Node": "☁️ TTanG-语言特效",
-    "CF_Image_Node": "🎨 TTanG-图片生成"
+    "CF_Language_Node": "TT-CF-Bridge",
+    "CF_Image_Node": "TT-CF-Bridge"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
