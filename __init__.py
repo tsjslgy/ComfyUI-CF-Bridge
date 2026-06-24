@@ -8,7 +8,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "CF_Language_Node": "TT-CF-Bridge",
-    "CF_Image_Node": "TT-CF-Bridge"
+    "CF_Image_Node": "TT-CF-Image"
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
