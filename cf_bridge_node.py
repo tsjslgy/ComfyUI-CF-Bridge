@@ -33,21 +33,10 @@ class CF_Language_Node:
                     preset_display = [v["name"] for v in presets.values()]
             except: pass
 
-        token_display, id_display = "", ""
-        if os.path.exists(creds_path):
-            try:
-                with open(creds_path, 'r') as f:
-                    creds = json.load(f)
-                    if creds.get("token", "").strip():
-                        token_display = "****"
-                    if creds.get("id", "").strip():
-                        id_display = "****"
-            except: pass
-
         return {
             "required": {
-                "cf_api_token": ("STRING", {"default": token_display}),
-                "cf_account_id": ("STRING", {"default": id_display}),
+                "cf_api_token": ("STRING", {"default": ""}),
+                "cf_account_id": ("STRING", {"default": ""}),
                 "预设功能": (preset_display,),
                 "model": ([
                     "@cf/meta/llama-3.2-11b-vision-instruct",
@@ -72,16 +61,11 @@ class CF_Language_Node:
 
     def call_cf_ai(self, cf_api_token, cf_account_id, 预设功能, model, 自定义模型ID, 用户输入, image=None, 自定义人设=""):
         # 1. 凭据处理
-        raw_token = cf_api_token.strip()
-        raw_id = cf_account_id.strip()
-        user_token = raw_token if raw_token and raw_token != "****" else None
-        user_id = raw_id if raw_id and raw_id != "****" else None
-
         self.load_creds()
-        final_token = user_token if user_token is not None else self.saved_token
-        final_id = user_id if user_id is not None else self.saved_id
-
-        if user_token is not None or user_id is not None:
+        final_token = cf_api_token.strip() if cf_api_token.strip() else self.saved_token
+        final_id = cf_account_id.strip() if cf_account_id.strip() else self.saved_id
+        
+        if cf_api_token.strip() or cf_account_id.strip():
             with open(creds_path, 'w') as f:
                 json.dump({"token": final_token, "id": final_id}, f)
 
